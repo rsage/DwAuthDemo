@@ -8,6 +8,15 @@ namespace DwAuthDemo.Models
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; }
+
+        [Required]
+        [Phone]
+        [Display(Name = "Phone")]
+        public string Phone { get; set; }
+
+        [Required]
+        [Display(Name = "Company")]
+        public string Company { get; set; }
     }
 
     public class ExternalLoginListViewModel

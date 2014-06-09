@@ -50,11 +50,11 @@ namespace DwAuthDemo
             //   appId: "",
             //   appSecret: "");
 
-            //app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions()
-            //{
-            //    ClientId = "",
-            //    ClientSecret = ""
-            //});
+            app.UseGoogleAuthentication(new GoogleOAuth2AuthenticationOptions
+            {
+                ClientId = "329300501889-fkpgqjlt15bg3d5a2tt63k7apnt4sges.apps.googleusercontent.com",
+                ClientSecret = "X9oC8dVEoutKocof42l5ZeAf"
+            });
         }
     }
 }
