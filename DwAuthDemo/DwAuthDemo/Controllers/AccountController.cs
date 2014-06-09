@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using System.Web.Mvc;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.EntityFramework;
 using Microsoft.AspNet.Identity.Owin;
+using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using Owin;
 using DwAuthDemo.Models;
@@ -18,14 +20,16 @@ namespace DwAuthDemo.Controllers
     public class AccountController : Controller
     {
         private ApplicationUserManager _userManager;
+        private ApplicationDbContext _dbContext;
 
         public AccountController()
         {
         }
 
-        public AccountController(ApplicationUserManager userManager)
+        public AccountController(ApplicationUserManager userManager, ApplicationDbContext dbContext)
         {
             UserManager = userManager;
+            DbContext = dbContext;
         }
 
         public ApplicationUserManager UserManager {
@@ -36,6 +40,18 @@ namespace DwAuthDemo.Controllers
             private set
             {
                 _userManager = value;
+            }
+        }
+
+        public ApplicationDbContext DbContext
+        {
+            get
+            {
+                return _dbContext ?? HttpContext.GetOwinContext().GetUserManager<ApplicationDbContext>();
+            }
+            private set
+            {
+                _dbContext = value;
             }
         }
 
@@ -346,6 +362,21 @@ namespace DwAuthDemo.Controllers
             var user = await UserManager.FindAsync(loginInfo.Login);
             if (user != null)
             {
+                DbContext.Entry(user).Collection(u => u.Rights).Load();
+
+                if (user.Rights == null)
+                {
+                    user.Rights = new List<ProjectRight>
+                    {
+                        new ProjectRight
+                        {
+                            Project = new Project {Name = "DemoProject"},
+                            Right = new Right {Name = "CanRead"}
+                        }
+                    };
+                    var res = await UserManager.UpdateAsync(user);
+                }
+
                 await SignInAsync(user, isPersistent: false);
                 return RedirectToLocal(returnUrl);
             }
@@ -355,7 +386,9 @@ namespace DwAuthDemo.Controllers
                 ViewBag.ReturnUrl = returnUrl;
                 ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
                 return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
+            
             }
+
         }
 
         //
