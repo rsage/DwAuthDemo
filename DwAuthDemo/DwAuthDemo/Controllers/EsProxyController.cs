@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using System;
+using System.ComponentModel;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
@@ -13,13 +15,9 @@ namespace DwAuthDemo.Controllers
         [HttpGet]
         [ActionName("_nodes")]
         // GET: EsProxy/_nodes
-        public HttpResponseMessage GetNodes()
+        public async Task<HttpResponseMessage> GetNodes()
         {
-            var conn = new ElasticConnection("localhost");
-            var res = conn.Get("_nodes");
-            var obj = JObject.Parse(res);
-            var response = Request.CreateResponse(HttpStatusCode.OK, obj, "application/json");
-            return response;
+            return await DoEsRequest(async c => await c.GetAsync("_nodes"));
         }
 
         [HttpPost]
@@ -27,9 +25,25 @@ namespace DwAuthDemo.Controllers
         // POST: EsProxy/_all
         public async Task<HttpResponseMessage> PostQuery(string op)
         {
-            var query = await Request.Content.ReadAsStringAsync();
-            var conn = new ElasticConnection("localhost");
-            var res = conn.Post("_all/" + op, query);
+            return await DoEsRequest(async (c) => await c.PostAsync("_all/" + op, await Request.Content.ReadAsStringAsync()));
+        }
+
+        private async Task<HttpResponseMessage> DoEsRequest(Func<ElasticConnection, Task<string>> esRequest)
+        {
+            var conn = GetEsConnection();
+
+            var res = await esRequest(conn);
+
+            return CreateJsonResponse(res);
+        }
+
+        private static ElasticConnection GetEsConnection()
+        {
+            return new ElasticConnection("localhost");
+        }
+
+        private HttpResponseMessage CreateJsonResponse(string res)
+        {
             var obj = JObject.Parse(res);
             var response = Request.CreateResponse(HttpStatusCode.OK, obj, "application/json");
             return response;
