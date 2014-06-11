@@ -21,7 +21,7 @@ namespace DwAuthDemo
             //    defaults: new { id = RouteParameter.Optional }
             //);
 
-            config.Routes.MapHttpRoute("EsNodes", "{controller}/{action}/{op}", new { op = RouteParameter .Optional});
+            //config.Routes.MapHttpRoute("EsNodes", "{controller}/{*op}", new { op = RouteParameter .Optional});
         }
     }
 }
