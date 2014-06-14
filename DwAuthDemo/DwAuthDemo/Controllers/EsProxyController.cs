@@ -9,7 +9,7 @@ using PlainElastic.Net;
 
 namespace DwAuthDemo.Controllers
 {
-    [AllowAnonymous]
+    [Authorize]
     public class EsProxyController : ApiController
     {
         [HttpGet]
@@ -25,8 +25,9 @@ namespace DwAuthDemo.Controllers
         // POST: EsProxy/
         public async Task<HttpResponseMessage> PostQuery(string op, [FromBody] JObject query)
         {
-            var queryToken = GetQueryToken(query);
-            ChangeQuery(queryToken);
+            op = op.Replace("_all", "public_customer");
+            //var queryToken = GetQueryToken(query);
+            //ChangeQuery(queryToken);
             return await DoEsRequest(async c => await c.PostAsync(op, query.ToString()));
         }
 
